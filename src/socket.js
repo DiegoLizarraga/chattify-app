@@ -1,10 +1,12 @@
 import { io } from 'socket.io-client';
 
-const URL = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3000';
+// prep for deployment
+const URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 export const socket = io(URL, {
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5,
+  auth: {
+    serverOffset: 0,
+    ackTimeout: 10000,
+    retries: 3,
+  },
 });
