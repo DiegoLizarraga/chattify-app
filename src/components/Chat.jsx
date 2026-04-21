@@ -2,6 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { socket } from '../socket';
 import './Chat.css';
 
+const formatTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return timestamp;
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -117,10 +124,10 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
           messages.map((msg) => (
             <div key={msg.id} className="message">
               <div className="message-user">
-                <span className="user-name">{msg.user}</span>
-                <span className="message-time">{msg.timestamp}</span>
+                <span className="user-name">{msg.user || msg.username}</span>
+                <span className="message-time">{formatTime(msg.timestamp)}</span>
               </div>
-              <p className="message-content">{msg.message}</p>
+              <p className="message-content">{msg.message || msg.text || msg.content}</p>
             </div>
           ))
         )}
