@@ -42,12 +42,12 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
       socket.off('receive-message', handleReceiveMessage);
       socket.off('user-joined', handleUserJoined);
     };
-  }, [selectedChannel]);
+  }, [selectedChannel?.id]);
 
   const handleSetUsername = (e) => {
     e.preventDefault();
     if (tempUsername.trim() && selectedChannel) {
-      onSetUsername(tempUsername);
+      onSetUsername(tempUsername.trim());
       setTempUsername('');
     }
   };
@@ -56,8 +56,9 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
     e.preventDefault();
     if (inputMessage.trim() && selectedChannel && usernameSet) {
       socket.emit('chat-message', {
-        message: inputMessage,
+        message: inputMessage.trim(),
         channelId: selectedChannel.id,
+        username: username,
       });
       setInputMessage('');
     }
