@@ -4,9 +4,6 @@ const URL = import.meta.env.VITE_SOCKET_URL || 'https://chatify-server-productio
 
 export const socket = io(URL, {
   autoConnect: true,
-  auth: {
-    serverOffset: 0,
-  },
   ackTimeout: 10000,
   retries: 3,
 });

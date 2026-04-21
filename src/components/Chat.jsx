@@ -9,7 +9,7 @@ const formatTime = (timestamp) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
+const Chat = ({ username, onSetUsername, usernameSet }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [tempUsername, setTempUsername] = useState('');
@@ -24,10 +24,6 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
   }, [messages]);
 
   useEffect(() => {
-    setMessages([]);
-
-    if (!selectedChannel) return;
-
     const handleLoadMessages = (loadedMessages) => {
       setMessages(loadedMessages);
     };
@@ -36,24 +32,18 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
       setMessages(prev => [...prev, message]);
     };
 
-    const handleUserJoined = (data) => {
-      console.log(`${data.username} se unió al canal`);
-    };
-
     socket.on('load-messages', handleLoadMessages);
     socket.on('receive-message', handleReceiveMessage);
-    socket.on('user-joined', handleUserJoined);
 
     return () => {
       socket.off('load-messages', handleLoadMessages);
       socket.off('receive-message', handleReceiveMessage);
-      socket.off('user-joined', handleUserJoined);
     };
-  }, [selectedChannel?.id]);
+  }, []);
 
   const handleSetUsername = (e) => {
     e.preventDefault();
-    if (tempUsername.trim() && selectedChannel) {
+    if (tempUsername.trim()) {
       onSetUsername(tempUsername.trim());
       setTempUsername('');
     }
@@ -61,35 +51,22 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (inputMessage.trim() && selectedChannel && usernameSet) {
+    if (inputMessage.trim() && usernameSet) {
       socket.emit('chat-message', {
         message: inputMessage.trim(),
-        channelId: selectedChannel.id,
+        channelId: 'general',
         username: username,
       });
       setInputMessage('');
     }
   };
 
-  if (!selectedChannel) {
-    return (
-      <div className="chat-container">
-        <div className="chat-header">
-          <h2>Selecciona un canal</h2>
-        </div>
-        <div className="messages-area" style={{justifyContent: 'center', alignItems: 'center'}}>
-          <p>Elige un canal para comenzar a chatear</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!usernameSet) {
     return (
       <div className="chat-container">
         <div className="chat-header">
-          <h2>{selectedChannel.name}</h2>
-          <p>Ingresa tu nombre de usuario</p>
+          <h2>#general</h2>
+          <p>Ingresa tu nombre de usuario para chatear</p>
         </div>
         <div className="messages-area" style={{justifyContent: 'center', alignItems: 'center'}}>
           <form onSubmit={handleSetUsername} style={{width: '100%', maxWidth: '400px'}}>
@@ -101,7 +78,7 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
               className="message-input"
               autoFocus
             />
-            <button type="submit" className="send-btn">Entrar al canal</button>
+            <button type="submit" className="send-btn">Entrar</button>
           </form>
         </div>
       </div>
@@ -111,7 +88,7 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>{selectedChannel.name}</h2>
+        <h2>#general</h2>
         <p>Conectado como: <strong>{username}</strong></p>
       </div>
 
@@ -137,7 +114,7 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
       <form className="message-input-form" onSubmit={handleSendMessage}>
         <input
           type="text"
-          placeholder={`Escribe algo en ${selectedChannel.name}...`}
+          placeholder="Escribe un mensaje..."
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           className="message-input"
