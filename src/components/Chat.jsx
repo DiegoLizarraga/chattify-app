@@ -20,15 +20,13 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
     const handleLoadMessages = (loadedMessages) => {
+      console.log('load-messages:', loadedMessages);
       setMessages(loadedMessages);
     };
 
     const handleReceiveMessage = (message) => {
+      console.log('receive-message:', message);
       setMessages(prev => [...prev, message]);
     };
 
