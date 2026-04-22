@@ -119,10 +119,10 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
           messages.map((msg) => (
             <div key={msg.id} className="message">
               <div className="message-user">
-                <span className="user-name">{msg.user}</span>
-                <span className="message-time">{msg.timestamp}</span>
+               <span className="user-name">{msg.username}</span>
+                <span className="message-time">{new Date(msg.created_at).toLocaleTimeString()}</span>
               </div>
-              <p className="message-content">{msg.message}</p>
+              <p className="message-content">{msg.content}</p>
             </div>
           ))
         )}
