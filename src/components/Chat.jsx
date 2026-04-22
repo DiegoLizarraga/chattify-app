@@ -22,11 +22,14 @@ const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
     if (!selectedChannel) return;
 
     const handleLoadMessages = (loadedMessages) => {
+       console.log('Mensajes cargados:', loadedMessages);
       setMessages(loadedMessages);
     };
 
     const handleReceiveMessage = (message) => {
+      console.log('Mensaje recibido:', message);
       setMessages(prev => [...prev, message]);
+
     };
 
     const handleUserJoined = (data) => {
