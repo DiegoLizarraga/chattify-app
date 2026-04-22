@@ -2,14 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { socket } from '../socket';
 import './Chat.css';
 
-const formatTime = (timestamp) => {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  if (isNaN(date.getTime())) return timestamp;
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
-
-const Chat = ({ username, onSetUsername, usernameSet }) => {
+const Chat = ({ selectedChannel, username, onSetUsername, usernameSet }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [tempUsername, setTempUsername] = useState('');
@@ -20,51 +13,75 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
   };
 
   useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    setMessages([]);
+
+    if (!selectedChannel) return;
+
     const handleLoadMessages = (loadedMessages) => {
-      console.log('load-messages:', loadedMessages);
       setMessages(loadedMessages);
     };
 
     const handleReceiveMessage = (message) => {
-      console.log('receive-message:', message);
       setMessages(prev => [...prev, message]);
+    };
+
+    const handleUserJoined = (data) => {
+      console.log(`${data.username} se unió al canal`);
     };
 
     socket.on('load-messages', handleLoadMessages);
     socket.on('receive-message', handleReceiveMessage);
+    socket.on('user-joined', handleUserJoined);
 
     return () => {
       socket.off('load-messages', handleLoadMessages);
       socket.off('receive-message', handleReceiveMessage);
+      socket.off('user-joined', handleUserJoined);
     };
-  }, []);
+  }, [selectedChannel]);
 
   const handleSetUsername = (e) => {
     e.preventDefault();
-    if (tempUsername.trim()) {
-      onSetUsername(tempUsername.trim());
+    if (tempUsername.trim() && selectedChannel) {
+      onSetUsername(tempUsername);
       setTempUsername('');
     }
   };
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (inputMessage.trim() && usernameSet) {
+    if (inputMessage.trim() && selectedChannel && usernameSet) {
       socket.emit('chat-message', {
-        message: inputMessage.trim(),
-        channelId: 'general',
-        username: username,
+        message: inputMessage,
+        channelId: selectedChannel.id,
       });
       setInputMessage('');
     }
   };
 
+  if (!selectedChannel) {
+    return (
+      <div className="chat-container">
+        <div className="chat-header">
+          <h2>Selecciona un canal</h2>
+        </div>
+        <div className="messages-area" style={{justifyContent: 'center', alignItems: 'center'}}>
+          <p>Elige un canal para comenzar a chatear</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!usernameSet) {
     return (
       <div className="chat-container">
         <div className="chat-header">
-          <h2>#general</h2>
-          <p>Ingresa tu nombre de usuario para chatear</p>
+          <h2>{selectedChannel.name}</h2>
+          <p>Ingresa tu nombre de usuario</p>
         </div>
         <div className="messages-area" style={{justifyContent: 'center', alignItems: 'center'}}>
           <form onSubmit={handleSetUsername} style={{width: '100%', maxWidth: '400px'}}>
@@ -76,7 +93,7 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
               className="message-input"
               autoFocus
             />
-            <button type="submit" className="send-btn">Entrar</button>
+            <button type="submit" className="send-btn">Entrar al canal</button>
           </form>
         </div>
       </div>
@@ -86,7 +103,7 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>#general</h2>
+        <h2>{selectedChannel.name}</h2>
         <p>Conectado como: <strong>{username}</strong></p>
       </div>
 
@@ -99,10 +116,10 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
           messages.map((msg) => (
             <div key={msg.id} className="message">
               <div className="message-user">
-                <span className="user-name">{msg.user || msg.username}</span>
-                <span className="message-time">{formatTime(msg.timestamp)}</span>
+                <span className="user-name">{msg.user}</span>
+                <span className="message-time">{msg.timestamp}</span>
               </div>
-              <p className="message-content">{msg.message || msg.text || msg.content}</p>
+              <p className="message-content">{msg.message}</p>
             </div>
           ))
         )}
@@ -112,7 +129,7 @@ const Chat = ({ username, onSetUsername, usernameSet }) => {
       <form className="message-input-form" onSubmit={handleSendMessage}>
         <input
           type="text"
-          placeholder="Escribe un mensaje..."
+          placeholder={`Escribe algo en ${selectedChannel.name}...`}
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           className="message-input"
